@@ -4,7 +4,7 @@ import {
   PAYMENT_ENDPOINT,
   SANDBOX_BASE_URL,
 } from "./constants";
-import { CreatePayment, VnpayConfig } from "./types";
+import { CreatePayment, IpnParams, VnpayConfig } from "./types";
 import { buildSearchParams, generateSecureHash } from "./utils";
 
 export class VnpayClient {
@@ -50,7 +50,7 @@ export class VnpayClient {
       vnp_TxnRef: txnRef,
       vnp_OrderInfo: orderInfo,
       vnp_OrderType: orderType,
-      vnp_Amount: amount,
+      vnp_Amount: amount * 100,
       vnp_ReturnUrl: returnUrl,
       vnp_IpAddr: ipAddress,
       vnp_CreateDate: createDate,
@@ -66,5 +66,12 @@ export class VnpayClient {
     const signed = generateSecureHash(paymentUrl.search.slice(1), secureHash);
     paymentUrl.searchParams.set("vnp_SecureHash", signed);
     return paymentUrl;
+  }
+
+  verifyIpnParams(query: IpnParams, secret: string) {
+    const { vnp_SecureHash, vnp_SecureHashType, ...rest } = query;
+    const params = buildSearchParams(rest);
+    const secureHash = generateSecureHash(params.toString(), secret);
+    return vnp_SecureHash === secureHash;
   }
 }
