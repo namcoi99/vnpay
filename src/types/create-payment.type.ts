@@ -63,9 +63,13 @@ export type CreatePayment = {
    */
   tmnCode: string;
   /**
+   * secretKey
+   */
+  hashSecret: string;
+  /**
    * Mã kiểm tra (checksum) để đảm bảo dữ liệu của giao dịch không bị thay đổi trong quá trình chuyển từ merchant sang VNPAY.
    * Việc tạo ra mã này phụ thuộc vào cấu hình của merchant và phiên bản api sử dụng.
    * Phiên bản hiện tại hỗ trợ SHA256, HMACSHA512.
    */
-  secureHash: string;
+  secureHash?: string;
 };

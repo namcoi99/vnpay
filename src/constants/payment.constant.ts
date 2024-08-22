@@ -19,6 +19,5 @@ export enum VnpayLocale {
 }
 
 export const SANDBOX_BASE_URL = "https://sandbox.vnpayment.vn";
-export const DEFAULT_COMMAND = "pay";
 export const DEFAULT_VERSION = "2.1.0";
 export const PAYMENT_ENDPOINT = "paymentv2/vpcpay.html";
