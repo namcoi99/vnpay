@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  CommandType,
   DEFAULT_VERSION,
   PAYMENT_ENDPOINT,
   REFUND_ENDPOINT,
@@ -48,7 +49,7 @@ export class VnpayClient {
     } = params;
     const searchParams = buildSearchParams({
       vnp_Version: version,
-      vnp_Command: "pay",
+      vnp_Command: CommandType.PAY,
       vnp_TmnCode: tmnCode,
       vnp_Locale: locale,
       vnp_CurrCode: currCode,
@@ -96,7 +97,8 @@ export class VnpayClient {
       requestId,
       hashSecret,
     } = query;
-    const command = "refund";
+    const command = CommandType.REFUND;
+    const _amount = amount * 100;
     const body: RefundParams = {
       vnp_Version: version || DEFAULT_VERSION,
       vnp_Command: command,
@@ -105,7 +107,7 @@ export class VnpayClient {
       vnp_TransactionDate: transactionDate,
       vnp_TransactionType: transactionType,
       vnp_TransactionNo: transactionNo,
-      vnp_Amount: amount,
+      vnp_Amount: _amount,
       vnp_CreateBy: createBy,
       vnp_RequestId: requestId,
       vnp_OrderInfo: orderInfo,
@@ -125,7 +127,7 @@ export class VnpayClient {
         "|" +
         txnRef +
         "|" +
-        amount +
+        _amount +
         "|" +
         transactionNo +
         "|" +
