@@ -1,10 +1,18 @@
+import axios from "axios";
 import {
-  DEFAULT_COMMAND,
+  CommandType,
   DEFAULT_VERSION,
   PAYMENT_ENDPOINT,
+  REFUND_ENDPOINT,
   SANDBOX_BASE_URL,
 } from "./constants";
-import { CreatePayment, IpnParams, VnpayConfig } from "./types";
+import {
+  CreatePayment,
+  IpnParams,
+  RefundParams,
+  RefundPayment,
+  VnpayConfig,
+} from "./types";
 import { buildSearchParams, generateSecureHash } from "./utils";
 
 export class VnpayClient {
@@ -13,19 +21,17 @@ export class VnpayClient {
   constructor({
     baseUrl = SANDBOX_BASE_URL,
     version = DEFAULT_VERSION,
-    command = DEFAULT_COMMAND,
     ...rest
   }: VnpayConfig) {
     this.config = {
       baseUrl,
       version,
-      command,
       ...rest,
     };
   }
 
   buildPaymentUrl(params: CreatePayment) {
-    const { baseUrl, version, command } = this.config;
+    const { baseUrl, version } = this.config;
     const {
       locale,
       currCode,
@@ -38,12 +44,12 @@ export class VnpayClient {
       createDate,
       expireDate,
       bankCode,
-      secureHash,
+      hashSecret,
       tmnCode,
     } = params;
     const searchParams = buildSearchParams({
       vnp_Version: version,
-      vnp_Command: command,
+      vnp_Command: CommandType.PAY,
       vnp_TmnCode: tmnCode,
       vnp_Locale: locale,
       vnp_CurrCode: currCode,
@@ -63,7 +69,7 @@ export class VnpayClient {
       paymentUrl.searchParams.set(key, value);
     });
 
-    const signed = generateSecureHash(paymentUrl.search.slice(1), secureHash);
+    const signed = generateSecureHash(paymentUrl.search.slice(1), hashSecret);
     paymentUrl.searchParams.set("vnp_SecureHash", signed);
     return paymentUrl;
   }
@@ -73,5 +79,71 @@ export class VnpayClient {
     const params = buildSearchParams(rest);
     const secureHash = generateSecureHash(params.toString(), secret);
     return vnp_SecureHash === secureHash;
+  }
+
+  async refund(query: RefundPayment) {
+    const { baseUrl, version } = this.config;
+    const {
+      txnRef,
+      tmnCode,
+      transactionDate,
+      transactionNo,
+      transactionType,
+      amount,
+      createBy,
+      createDate,
+      ipAddress,
+      orderInfo,
+      requestId,
+      hashSecret,
+    } = query;
+    const command = CommandType.REFUND;
+    const _amount = amount * 100;
+    const body: RefundParams = {
+      vnp_Version: version || DEFAULT_VERSION,
+      vnp_Command: command,
+      vnp_TxnRef: txnRef,
+      vnp_TmnCode: tmnCode,
+      vnp_TransactionDate: transactionDate,
+      vnp_TransactionType: transactionType,
+      vnp_TransactionNo: transactionNo,
+      vnp_Amount: _amount,
+      vnp_CreateBy: createBy,
+      vnp_RequestId: requestId,
+      vnp_OrderInfo: orderInfo,
+      vnp_IpAddr: ipAddress,
+      vnp_CreateDate: createDate,
+    };
+    body.vnp_SecureHash = generateSecureHash(
+      requestId +
+        "|" +
+        version +
+        "|" +
+        command +
+        "|" +
+        tmnCode +
+        "|" +
+        transactionType +
+        "|" +
+        txnRef +
+        "|" +
+        _amount +
+        "|" +
+        transactionNo +
+        "|" +
+        transactionDate +
+        "|" +
+        createBy +
+        "|" +
+        createDate +
+        "|" +
+        ipAddress +
+        "|" +
+        orderInfo,
+      hashSecret
+    );
+
+    const response = await axios.post(`${baseUrl}/${REFUND_ENDPOINT}`, body);
+    return response.data;
   }
 }

@@ -1,3 +1,30 @@
+export enum IpnResponseCode {
+  /**
+   * Success
+   */
+  SUCCESS = "00",
+  /**
+   * Order not found
+   */
+  ORDER_NOT_FOUND = "01",
+  /**
+   * This order has been updated to the payment status
+   */
+  ALREADY_UPDATED = "02",
+  /**
+   * Amount invalid
+   */
+  AMOUNT_INVALID = "04",
+  /**
+   * Checksum failed
+   */
+  CHECKSUM_INVALID = "97",
+  /**
+   * Internal server error
+   */
+  INTERNAL_ERROR = "99",
+}
+
 export type IpnResponse = {
   RspCode: string;
   Message: string;

@@ -36,7 +36,7 @@ app.get("/payment-url", async (req: Request, res: Response) => {
     expireDate: "20240815180000",
     txnRef,
     tmnCode: TMN_CODE || "",
-    secureHash: HASH_SECRET || "",
+    hashSecret: HASH_SECRET || "",
   });
   return res.json({ paymentUrl });
 });
